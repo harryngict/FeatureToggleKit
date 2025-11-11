@@ -1,5 +1,4 @@
 import FeatureToggleKit
-import FirebaseRemoteConfig
 import Foundation
 
 // MARK: - FeatureToggleKitImp
@@ -7,7 +6,7 @@ import Foundation
 public final class FeatureToggleKitImp: FeatureToggleKit, @unchecked Sendable {
   // MARK: Lifecycle
 
-  public init(featureToggleValueProvider: FeatureToggleValueProvider,
+  public init(featureToggleValueProvider: FeatureToggleValueProvider = FeatureToggleProviderImp(),
               featureToggleAssertable: FeatureToggleAssertable = FeatureToggleAssertableImp(),
               tweakCacheService: TweakCacheService? = nil)
   {
