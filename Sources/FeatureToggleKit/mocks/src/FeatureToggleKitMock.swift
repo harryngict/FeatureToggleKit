@@ -124,15 +124,6 @@ public final class FeatureToggleKitMock: FeatureToggleKit, @unchecked Sendable {
     set { removeAllListenersState.withLock { $0.handler = newValue } }
   }
 
-  public var hasValueChangedSinceLastCheckCallCount: Int {
-    hasValueChangedSinceLastCheckState.withLock(\.callCount)
-  }
-
-  public var hasValueChangedSinceLastCheckHandler: (@Sendable (String) -> Bool)? {
-    get { hasValueChangedSinceLastCheckState.withLock(\.handler) }
-    set { hasValueChangedSinceLastCheckState.withLock { $0.handler = newValue } }
-  }
-
   public var updateLocalCallCount: Int {
     updateLocalState.withLock(\.callCount)
   }
@@ -286,17 +277,6 @@ public final class FeatureToggleKitMock: FeatureToggleKit, @unchecked Sendable {
     }
   }
 
-  public func hasValueChangedSinceLastCheck(forKey key: String) -> Bool {
-    let hasValueChangedSinceLastCheckHandler = hasValueChangedSinceLastCheckState.withLock { state in
-      state.callCount += 1
-      return state.handler
-    }
-    if let hasValueChangedSinceLastCheckHandler {
-      return hasValueChangedSinceLastCheckHandler(key)
-    }
-    return false
-  }
-
   public func updateLocal(key: String, newValue: FeatureToggleValue) async {
     let updateLocalHandler = updateLocalState.withLock { state in
       state.callCount += 1
@@ -353,8 +333,6 @@ public final class FeatureToggleKitMock: FeatureToggleKit, @unchecked Sendable {
   private let addListenersState = MockoloMutex(MockoloHandlerState<Never, @Sendable ([FeatureToggleKitListener]) -> Void>())
 
   private let removeAllListenersState = MockoloMutex(MockoloHandlerState<Never, @Sendable () -> Void>())
-
-  private let hasValueChangedSinceLastCheckState = MockoloMutex(MockoloHandlerState<Never, @Sendable (String) -> Bool>())
 
   private let updateLocalState = MockoloMutex(MockoloHandlerState<Never, @Sendable (String, FeatureToggleValue) async -> Void>())
 
@@ -491,8 +469,6 @@ public class FeatureToggleListenerManagingMock: FeatureToggleListenerManaging {
   public var addListenersHandler: (([FeatureToggleKitListener]) -> Void)?
   public private(set) var removeAllListenersCallCount = 0
   public var removeAllListenersHandler: (() -> Void)?
-  public private(set) var hasValueChangedSinceLastCheckCallCount = 0
-  public var hasValueChangedSinceLastCheckHandler: ((String) -> Bool)?
 
   public func addListener(_ listener: FeatureToggleKitListener) {
     addListenerCallCount += 1
@@ -520,14 +496,6 @@ public class FeatureToggleListenerManagingMock: FeatureToggleListenerManaging {
     if let removeAllListenersHandler {
       removeAllListenersHandler()
     }
-  }
-
-  public func hasValueChangedSinceLastCheck(forKey key: String) -> Bool {
-    hasValueChangedSinceLastCheckCallCount += 1
-    if let hasValueChangedSinceLastCheckHandler {
-      return hasValueChangedSinceLastCheckHandler(key)
-    }
-    return false
   }
 }
 

@@ -9,15 +9,11 @@ public final class FeatureToggleKitImp: FeatureToggleKit, @unchecked Sendable {
 
   public init(featureToggleValueProvider: FeatureToggleValueProvider,
               featureToggleAssertable: FeatureToggleAssertable = FeatureToggleAssertableImp(),
-              featureToggleKitSessionStorage: FeatureToggleKitSessionStorage = FeatureToggleKitSessionStorageImp(),
-              tweakCacheService: TweakCacheService? = nil,
-              requiresRemoteDefaultValues: Bool = true)
+              tweakCacheService: TweakCacheService? = nil)
   {
     self.featureToggleValueProvider = featureToggleValueProvider
     self.featureToggleAssertable = featureToggleAssertable
     self.tweakCacheService = tweakCacheService
-    self.featureToggleKitSessionStorage = featureToggleKitSessionStorage
-    self.requiresRemoteDefaultValues = requiresRemoteDefaultValues
     self.featureToggleValueProvider.listener = self
   }
 
@@ -26,9 +22,7 @@ public final class FeatureToggleKitImp: FeatureToggleKit, @unchecked Sendable {
   public func setup(definitionProviders: [FeatureToggleDefinitionProvider]) {
     let definitions: [FeatureToggleDefinition] = definitionProviders.flatMap(\.definitions)
 
-    if requiresRemoteDefaultValues {
-      definitions.forEach { featureToggleValueProvider.setDefaultValue($0) }
-    }
+    definitions.forEach { featureToggleValueProvider.setDefaultValue($0) }
 
     for definition in definitions {
       if let variant = featureToggleValueProvider.defineVariable(definition: definition) {
@@ -36,9 +30,6 @@ public final class FeatureToggleKitImp: FeatureToggleKit, @unchecked Sendable {
           featureToggleAssertable.assertUndefinedFeatureToggle(key: definition.key)
         }
         definedVariants[definition.key] = variant
-        try? featureToggleKitSessionStorage.saveFeatureToggleValue(
-          forKey: definition.key,
-          value: variant.value)
       }
     }
   }
@@ -60,10 +51,6 @@ public final class FeatureToggleKitImp: FeatureToggleKit, @unchecked Sendable {
     }
   }
 
-  public func hasValueChangedSinceLastCheck(forKey key: String) -> Bool {
-    featureToggleKitSessionStorage.hasValueChangedSinceLastCheck(forKey: key)
-  }
-
   // MARK: Private
 
   private var listeners: [FeatureToggleKitListener] = []
@@ -71,8 +58,6 @@ public final class FeatureToggleKitImp: FeatureToggleKit, @unchecked Sendable {
   private var featureToggleValueProvider: FeatureToggleValueProvider
   private let featureToggleAssertable: FeatureToggleAssertable
   private var tweakCacheService: TweakCacheService?
-  private let featureToggleKitSessionStorage: FeatureToggleKitSessionStorage
-  private let requiresRemoteDefaultValues: Bool
 }
 
 // MARK: FeatureToggleValueProviderListener
@@ -90,7 +75,6 @@ extension FeatureToggleKitImp: FeatureToggleValueProviderListener {
         continue
       }
       definedVariants[key]?.value = newValue
-      try? featureToggleKitSessionStorage.saveFeatureToggleValue(forKey: key, value: newValue)
     }
     for listener in listeners {
       await listener.didReceiveFeatureToggleUpdates(values: values)

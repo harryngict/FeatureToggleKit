@@ -2,20 +2,9 @@ import FeatureToggleKit
 @preconcurrency import FirebaseRemoteConfig
 import Foundation
 
-// MARK: - RemoteConfigService
+// MARK: - RemoteConfig + FeatureToggleService
 
-/// @mockable
-public protocol RemoteConfigService {
-  func getFeatureToggleValue(_ definition: FeatureToggleDefinition) -> FeatureToggleValue?
-  func addOnConfigUpdateListener(completion: @Sendable @escaping (Set<String>?, Error?) -> Void)
-  func activateWithCompletion(completion: @escaping @Sendable (Bool, Error?) -> Void)
-  func setDefaults(_ definition: FeatureToggleDefinition)
-  func fetchAndActivate(completion: @Sendable @escaping () -> Void)
-}
-
-// MARK: - RemoteConfig + RemoteConfigService
-
-extension RemoteConfig: RemoteConfigService {
+extension RemoteConfig: FeatureToggleService {
   public func setDefaults(_ definition: FeatureToggleDefinition) {
     switch definition.defaultValue {
     case .bool:
@@ -87,6 +76,8 @@ extension RemoteConfig: RemoteConfigService {
     }
   }
 }
+
+// MARK: Helper
 
 private extension RemoteConfig {
   func mapToFeatureToggleValue(_ raw: Any) -> FeatureToggleValue? {

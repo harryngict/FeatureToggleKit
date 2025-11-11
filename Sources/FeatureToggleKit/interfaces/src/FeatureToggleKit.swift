@@ -60,7 +60,6 @@ public protocol FeatureToggleListenerManaging: AnyObject {
   func removeListener(_ listener: FeatureToggleKitListener)
   func addListeners(_ listeners: [FeatureToggleKitListener])
   func removeAllListeners()
-  func hasValueChangedSinceLastCheck(forKey key: String) -> Bool
 }
 
 /// @mockable

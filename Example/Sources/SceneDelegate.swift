@@ -10,7 +10,6 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
   // MARK: Internal
 
   var window: UIWindow?
-  var featureToggleKit: FeatureToggleKit!
 
   func scene(_ scene: UIScene,
              willConnectTo session: UISceneSession,
@@ -19,12 +18,18 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     guard let windowScene = (scene as? UIWindowScene) else { return }
     let window = UIWindow(windowScene: windowScene)
 
-    setupFirebaseApp()
+    FirebaseApp.configure()
 
-    featureToggleKit = setupFeatureToggleKit(using: FeatureToggleProviderImp())
+    let featureToggleKit = FeatureToggleKitImp(
+      featureToggleValueProvider: FeatureToggleProviderImp(),
+      tweakCacheService: TweakCacheServiceImp(cacheType: .both))
+
+    featureToggleKit.addListener(self)
+    featureToggleKit.setup(definitionProviders: [ExampleTeamAFeatureToggleDefinitionProvider()])
+
+    featureToggleKit.clearCache()
 
     let dependency = AppDependencyImp(featureToggleKit: featureToggleKit)
-
     displayContentView(for: window, with: dependency)
   }
 
@@ -39,23 +44,6 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     window.rootViewController = UIHostingController(rootView: contentView)
     self.window = window
     window.makeKeyAndVisible()
-  }
-
-  private func setupFirebaseApp() {
-    FirebaseApp.configure()
-  }
-
-  private func setupFeatureToggleKit(using provider: FeatureToggleProviderImp)
-    -> FeatureToggleKit
-  {
-    let kit = FeatureToggleKitImp(
-      featureToggleValueProvider: provider,
-      tweakCacheService: TweakCacheServiceImp(cacheType: .both),
-      requiresRemoteDefaultValues: true)
-    kit.addListener(self)
-    kit.setup(definitionProviders: [ExampleTeamAFeatureToggleDefinitionProvider()])
-    kit.clearCache()
-    return kit
   }
 }
 
