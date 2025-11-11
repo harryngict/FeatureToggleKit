@@ -1,0 +1,49 @@
+#!/bin/bash
+
+export LC_ALL=en_US.UTF-8
+export LANG=en_US.UTF-8
+
+source Tools/src-utils/colors
+
+EXPECTED_SWIFTFORMAT_VERSION="0.57.2" 
+EXPECTED_MOCKOLO_VERSION="2.4.0"
+
+check_required_tools() {
+    echo -e "\n*** Checking required tools ***\n"
+    local TOOLS=("swiftformat" "mockolo")
+
+    for TOOL in "${TOOLS[@]}"; do
+        if ! command -v "$TOOL" &>/dev/null; then
+            echo -e "${COLOR_RED}The script requires '$TOOL' to be installed. Please run './bootstrap' first to install the required tools.${COLOR_RESET}\n"
+            exit 1
+        fi
+    done
+    echo -e "${COLOR_GREEN}All required tools are installed.${COLOR_RESET}\n"
+}
+
+check_tool_version() {
+    local TOOL=$1
+    local EXPECTED_VERSION=$2
+    local INSTALLED_VERSION=$("$TOOL" --version 2>/dev/null)
+
+    if [ -z "$INSTALLED_VERSION" ]; then
+        echo -e "${COLOR_RED}Failed to fetch the version of '$TOOL'. Ensure it is correctly installed.${COLOR_RESET}\n"
+        exit 1
+    fi
+
+    if [ "$INSTALLED_VERSION" != "$EXPECTED_VERSION" ]; then
+        echo -e "${COLOR_RED}Expected $TOOL version $EXPECTED_VERSION but found $INSTALLED_VERSION. Please install the correct version.${COLOR_RESET}\n"
+        exit 1
+    else
+        echo -e "${COLOR_GREEN}$TOOL version $INSTALLED_VERSION is correct.${COLOR_RESET}\n"
+    fi
+}
+
+check_tool_versions() {
+    echo -e "\n*** Checking tool versions ***\n"
+    check_tool_version "swiftformat" "$EXPECTED_SWIFTFORMAT_VERSION"
+    check_tool_version "mockolo" "$EXPECTED_MOCKOLO_VERSION"
+}
+
+check_required_tools
+check_tool_versions

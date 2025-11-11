@@ -1,0 +1,19 @@
+#!/bin/bash
+
+export LC_ALL=en_US.UTF-8
+export LANG=en_US.UTF-8
+
+# Safe tput usage
+if [ -t 1 ]; then
+  COLOR_RED=$(tput setaf 1)
+  COLOR_GREEN=$(tput setaf 2)
+  COLOR_YELLOW=$(tput setaf 3)
+  COLOR_RESET=$(tput sgr0)
+else
+  COLOR_RED=""
+  COLOR_GREEN=""
+  COLOR_YELLOW=""
+  COLOR_RESET=""
+fi
+
+# echo "${COLOR_RED}red text ${COLOR_GREEN}green text${COLOR_YELLOW} yellow text${COLOR_RESET} original text"

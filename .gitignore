@@ -1,0 +1,37 @@
+# Xcode
+.DS_Store
+*.xcodeproj/xcuserdata/
+*.xcodeproj/xcshareddata/
+*.xcworkspace/xcuserdata/
+*.xcworkspace/xcshareddata/
+*.xcuserstate
+*.xcshareddata
+
+# Build products
+build/
+Reports/
+DerivedData/
+Scripts/Frameworks
+
+# fastlane
+fastlane/report.xml
+
+
+# SPM
+.build/
+.swiftpm/
+Packages/
+Package.pins
+Package.resolved
+
+# CocoaPods
+Pods/
+Gemfile.lock
+Podfile.lock
+
+
+# Reports and Sonarcloud
+Reports/
+.scannerwork/
+.derivedData/
+

@@ -1,0 +1,34 @@
+#!/bin/bash
+
+# https://github.com/nicklockwood/SwiftFormat
+# https://github.com/nicklockwood/SwiftFormat/blob/master/Rules.md
+
+# To exclude some directories, update the file '.rules' (--exclude param)
+
+export LC_ALL=en_US.UTF-8
+export LANG=en_US.UTF-8
+
+source Tools/src-utils/colors
+source Tools/src-utils/check-versions
+
+function auto_format_code() {
+    SWIFT_VERSION=5.7.1
+    RULES="Tools/.rules"
+
+    echo -e "\n*** Doing code formatting transformations. ***"
+
+    echo -e "\n${COLOR_GREEN}Formatting source files INSIDE 'Sources, Example/Sources and Example/Tests'${COLOR_RESET}\n"
+
+    swiftformat --swiftversion $SWIFT_VERSION --config $RULES \
+    "Sources/"
+
+    swiftformat --swiftversion $SWIFT_VERSION --config $RULES \
+    "Example/Sources"
+
+    swiftformat --swiftversion $SWIFT_VERSION --config $RULES \
+    "Example/Tests"
+
+    echo -e "\n*** Finished formatting transformations. ***"    
+}
+
+auto_format_code
