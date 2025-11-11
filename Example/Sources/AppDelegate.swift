@@ -1,4 +1,3 @@
-import GoogleMaps
 import UIKit
 
 @main

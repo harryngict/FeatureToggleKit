@@ -278,7 +278,9 @@ featureToggleKit.removeListener(observer)
 
 ### Unit Testing with Mocks
 
-Use the mock module in your tests:
+The `FeatureToggleKitMock` module provides comprehensive mock implementations for testing. All mocks are **thread-safe** and **Sendable**, supporting Swift 6 strict concurrency.
+
+#### Basic Mock Setup
 
 ```swift
 import XCTest
@@ -286,19 +288,286 @@ import FeatureToggleKit
 import FeatureToggleKitMock
 
 class FeatureModuleTests: XCTestCase {
+    var mockToggleKit: FeatureToggleKitMock!
+    
+    override func setUp() {
+        super.setUp()
+        mockToggleKit = FeatureToggleKitMock()
+    }
+    
     func testFeatureWithToggleEnabled() {
-        // Create mock
-        let mockToggleKit = FeatureToggleKitMock()
-        
-        // Configure mock behavior
-        mockToggleKit.getBoolValueReturnValue = true
+        // Configure mock behavior using handler
+        mockToggleKit.getBoolValueHandler = { key, fallback in
+            return key == "new_feature_enabled" ? true : fallback
+        }
         
         // Test your feature
         let feature = FeatureModule(featureToggleKit: mockToggleKit)
-        // ... perform assertions
+        let isEnabled = feature.checkNewFeature()
         
-        // Verify interactions
+        // Assertions
+        XCTAssertTrue(isEnabled)
         XCTAssertEqual(mockToggleKit.getBoolValueCallCount, 1)
+    }
+}
+```
+
+#### Configuring Mock Handlers
+
+Each mock method has a corresponding **handler** property for custom behavior:
+
+```swift
+// Boolean values
+mockToggleKit.getBoolValueHandler = { key, fallback in
+    switch key {
+    case "premium_enabled": return true
+    case "beta_features": return false
+    default: return fallback
+    }
+}
+
+// String values
+mockToggleKit.getStringValueHandler = { key, fallback in
+    return key == "api_url" ? "https://test.api.com" : fallback
+}
+
+// Numeric values
+mockToggleKit.getLongValueHandler = { key, fallback in
+    return key == "timeout" ? 30 : fallback
+}
+
+mockToggleKit.getDoubleValueHandler = { key, fallback in
+    return key == "price_multiplier" ? 1.5 : fallback
+}
+
+// JSON configuration
+mockToggleKit.getJSONValueHandler = { key, fallback in
+    if key == "app_config" {
+        return ["theme": "dark", "version": "2.0"]
+    }
+    return fallback
+}
+```
+
+#### Verifying Method Calls
+
+Track how many times each method was called:
+
+```swift
+func testFeatureCallsToggleCorrectly() {
+    mockToggleKit.getBoolValueHandler = { _, _ in true }
+    
+    let feature = FeatureModule(featureToggleKit: mockToggleKit)
+    feature.performAction()
+    
+    // Verify the feature toggle was checked
+    XCTAssertEqual(mockToggleKit.getBoolValueCallCount, 1)
+    
+    feature.performAnotherAction()
+    
+    // Verify multiple calls
+    XCTAssertEqual(mockToggleKit.getBoolValueCallCount, 2)
+}
+```
+
+#### Testing Listener Functionality
+
+Test real-time feature toggle updates:
+
+```swift
+func testFeatureTogglesListener() async {
+    let expectation = XCTestExpectation(description: "Listener called")
+    
+    // Configure listener handler
+    mockToggleKit.addListenerHandler = { listener in
+        // Simulate receiving updates
+        Task {
+            await listener.didReceiveFeatureToggleUpdates(values: [
+                ("new_feature", .bool(value: true))
+            ])
+            expectation.fulfill()
+        }
+    }
+    
+    let observer = FeatureObserver()
+    mockToggleKit.addListener(observer)
+    
+    await fulfillment(of: [expectation], timeout: 1.0)
+    XCTAssertEqual(mockToggleKit.addListenerCallCount, 1)
+}
+```
+
+#### Testing Async Operations
+
+Test async methods like `updateLocal`:
+
+```swift
+func testLocalOverride() async {
+    var capturedKey: String?
+    var capturedValue: FeatureToggleValue?
+    
+    mockToggleKit.updateLocalHandler = { key, value in
+        capturedKey = key
+        capturedValue = value
+    }
+    
+    await mockToggleKit.updateLocal(
+        key: "test_feature", 
+        newValue: .bool(value: true)
+    )
+    
+    XCTAssertEqual(capturedKey, "test_feature")
+    XCTAssertEqual(capturedValue, .bool(value: true))
+    XCTAssertEqual(mockToggleKit.updateLocalCallCount, 1)
+}
+```
+
+#### Testing Setup and Teardown
+
+```swift
+func testFeatureToggleSetup() {
+    let definitionProvider = TestDefinitionProvider()
+    
+    mockToggleKit.setupHandler = { providers in
+        XCTAssertEqual(providers.count, 1)
+        XCTAssertEqual(providers.first?.name, "TestProvider")
+    }
+    
+    mockToggleKit.setup(definitionProviders: [definitionProvider])
+    XCTAssertEqual(mockToggleKit.setupCallCount, 1)
+}
+
+func testClearCache() {
+    var cacheClearedCalled = false
+    
+    mockToggleKit.clearCacheHandler = {
+        cacheClearedCalled = true
+    }
+    
+    mockToggleKit.clearCache()
+    
+    XCTAssertTrue(cacheClearedCalled)
+    XCTAssertEqual(mockToggleKit.clearCacheCallCount, 1)
+}
+```
+
+#### Advanced: Testing Tweak Functionality
+
+```swift
+func testGetFeatureToggleTweak() {
+    let definition = FeatureToggleDefinition(
+        key: "test_feature",
+        defaultValue: .bool(value: false)
+    )
+    
+    mockToggleKit.getFeatureToggleTweakHandler = { def in
+        if def.key == "test_feature" {
+            return FeatureToggleTweak(
+                definition: def,
+                isEnabled: true,
+                tweakedValue: .bool(value: true)
+            )
+        }
+        return nil
+    }
+    
+    let tweak = mockToggleKit.getFeatureToggleTweak(definition)
+    
+    XCTAssertNotNil(tweak)
+    XCTAssertTrue(tweak?.isEnabled ?? false)
+    XCTAssertEqual(mockToggleKit.getFeatureToggleTweakCallCount, 1)
+}
+```
+
+#### Protocol-Specific Mocks
+
+For more granular testing, use protocol-specific mocks:
+
+```swift
+// Testing value retrieval only
+let valueProviderMock = FeatureToggleValueProvidingMock()
+valueProviderMock.getBoolValueHandler = { _, _ in true }
+
+// Testing listener management only
+let listenerMock = FeatureToggleListenerManagingMock()
+listenerMock.addListenerHandler = { listener in
+    // Custom logic
+}
+
+// Testing cache management only
+let cacheMock = FeatureToggleTweakCacheManagingMock()
+cacheMock.clearCacheHandler = {
+    // Custom logic
+}
+```
+
+#### Best Practices
+
+1. **Always set handlers before testing**: Without handlers, mocks return default values (false, "", 0, etc.)
+2. **Use call counts for verification**: Ensure your feature interacts with toggles as expected
+3. **Test both enabled and disabled states**: Cover all code paths
+4. **Leverage protocol mocks**: Use specific protocol mocks for focused unit tests
+5. **Thread-safety**: All mocks are `@unchecked Sendable` and thread-safe with internal locking
+6. **No network calls**: Mocks run entirely in-memory for fast, reliable tests
+
+#### Complete Test Example
+
+```swift
+import XCTest
+import FeatureToggleKit
+import FeatureToggleKitMock
+
+class CheckoutModuleTests: XCTestCase {
+    var mockToggleKit: FeatureToggleKitMock!
+    var checkoutModule: CheckoutModule!
+    
+    override func setUp() {
+        super.setUp()
+        mockToggleKit = FeatureToggleKitMock()
+        checkoutModule = CheckoutModule(featureToggleKit: mockToggleKit)
+    }
+    
+    func testCheckoutWithNewFlowEnabled() {
+        // Given: New checkout flow is enabled
+        mockToggleKit.getBoolValueHandler = { key, _ in
+            return key == "new_checkout_flow"
+        }
+        
+        // When: User proceeds to checkout
+        let result = checkoutModule.proceedToCheckout()
+        
+        // Then: New flow is used
+        XCTAssertTrue(result.usedNewFlow)
+        XCTAssertEqual(mockToggleKit.getBoolValueCallCount, 1)
+    }
+    
+    func testCheckoutWithNewFlowDisabled() {
+        // Given: New checkout flow is disabled
+        mockToggleKit.getBoolValueHandler = { _, fallback in fallback }
+        
+        // When: User proceeds to checkout
+        let result = checkoutModule.proceedToCheckout()
+        
+        // Then: Old flow is used
+        XCTAssertFalse(result.usedNewFlow)
+        XCTAssertEqual(mockToggleKit.getBoolValueCallCount, 1)
+    }
+    
+    func testCheckoutConfiguration() {
+        // Given: Custom checkout config
+        mockToggleKit.getJSONValueHandler = { key, _ in
+            if key == "checkout_config" {
+                return ["payment_methods": ["card", "paypal"], "timeout": 30]
+            }
+            return [:]
+        }
+        
+        // When: Loading checkout config
+        let config = checkoutModule.loadConfiguration()
+        
+        // Then: Config is properly loaded
+        XCTAssertEqual(config.paymentMethods.count, 2)
+        XCTAssertEqual(mockToggleKit.getJSONValueCallCount, 1)
     }
 }
 ```

@@ -45,9 +45,6 @@ modules = [
 pod_definitions, test_pod_definitions = create_pod_definitions(modules)
 
 target 'Example' do
-  pod 'FirebaseAnalytics'
-  pod 'FirebaseCrashlytics'
-  pod 'GoogleMaps', '9.4.0'
   add_pods(pod_definitions)
 end
 
