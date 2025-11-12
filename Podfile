@@ -50,6 +50,8 @@ end
 
 target 'ExampleTests' do
   inherit! :search_paths
+  pod 'FirebaseAnalytics'
+  pod 'FirebaseCrashlytics'
 
   # Mock pods
   mock_pods = pod_definitions.select { |k, _| k.include?('Mock') }

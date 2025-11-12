@@ -299,9 +299,13 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-ExampleTests/Pods-ExampleTests-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
+			inputPaths = (
+			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-ExampleTests/Pods-ExampleTests-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -338,9 +342,13 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Example/Pods-Example-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
+			inputPaths = (
+			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Example/Pods-Example-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -577,8 +585,6 @@
 					"-framework",
 					"\"FirebaseABTesting\"",
 					"-framework",
-					"\"FirebaseAnalytics\"",
-					"-framework",
 					"\"FirebaseCore\"",
 					"-framework",
 					"\"FirebaseCoreInternal\"",
@@ -592,10 +598,6 @@
 					"\"FirebaseSharedSwift\"",
 					"-framework",
 					"\"Foundation\"",
-					"-framework",
-					"\"GoogleAppMeasurement\"",
-					"-framework",
-					"\"GoogleAppMeasurementIdentitySupport\"",
 					"-framework",
 					"\"GoogleUtilities\"",
 					"-framework",
@@ -662,8 +664,6 @@
 					"-framework",
 					"\"FirebaseABTesting\"",
 					"-framework",
-					"\"FirebaseAnalytics\"",
-					"-framework",
 					"\"FirebaseCore\"",
 					"-framework",
 					"\"FirebaseCoreInternal\"",
@@ -677,10 +677,6 @@
 					"\"FirebaseSharedSwift\"",
 					"-framework",
 					"\"Foundation\"",
-					"-framework",
-					"\"GoogleAppMeasurement\"",
-					"-framework",
-					"\"GoogleAppMeasurementIdentitySupport\"",
 					"-framework",
 					"\"GoogleUtilities\"",
 					"-framework",
